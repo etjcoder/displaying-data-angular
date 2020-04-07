@@ -6,5 +6,13 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'udemy2';
+  showSecret = false;
+  logs = [];
+
+  onToggleDetails() {
+    this.showSecret = !this.showSecret
+    this.logs.push(this.logs.length + 1);
+  }
+
+
 }
