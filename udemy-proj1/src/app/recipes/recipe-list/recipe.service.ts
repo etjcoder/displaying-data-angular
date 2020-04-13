@@ -42,6 +42,10 @@ export class RecipeService {
 
   }
 
+  getRecipe(id: number) {
+    return this.recipes[id];
+  } 
+
   recipeSelected = new EventEmitter<Recipe>();
 
 
