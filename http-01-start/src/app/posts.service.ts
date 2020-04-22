@@ -1,16 +1,25 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpEventType } from '@angular/common/http';
 import { Post } from './post.model'
-import { map } from 'rxjs/operators'
+import { map, catchError, tap } from 'rxjs/operators'
+import { Subject, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PostsService {
+  error = new Subject<string>();
 
   constructor(
     private http: HttpClient
   ) { }
+
+  // //////  // //////  // //////  // //////  // //////  // //////  // //////  // //////  // //////
+      // //////  // ////// POST ROUTES
+      // //////  // ////// POST ROUTES
+      // //////  // ////// POST ROUTES
+      // //////  // ////// POST ROUTES
+    // //////  // //////  // //////  // //////  // //////  // //////  // //////// //////// //////// //////
 
   createAndStorePost(title: string, content: string) {
     // ...
@@ -20,15 +29,40 @@ export class PostsService {
       .post<{name: string}>(
         'https://angular-test-ejc.firebaseio.com/posts.json',
         postData
-        ).subscribe(responseData => {
+        // ,{
+        //   observe: 'response'
+        // }
+        )
+        .subscribe(
+         responseData => {
           console.log(responseData)
+        },
+         error => {
+          this.error.next(error.message);
         });
   }
 
+
+  // //////  // //////  // //////  // //////  // //////  // //////  // //////  // //////  // //////
+      // //////  // ////// GET ROUTES
+      // //////  // ////// GET ROUTES
+      // //////  // ////// GET ROUTES
+      // //////  // ////// GET ROUTES
+    // //////  // //////  // //////  // //////  // //////  // //////  // //////// //////// //////// //////
+
   fetchPosts() {
     // ..
+    let searchParams = new HttpParams();
+    searchParams = searchParams.append('print', 'pretty')
+    searchParams = searchParams.append('custom', 'key')
+
     return this.http
-      .get<{ [key: string]: Post }>('https://angular-test-ejc.firebaseio.com/posts.json')
+      .get<{ [key: string]: Post }>('https://angular-test-ejc.firebaseio.com/posts.json',
+      // {
+      //   headers: new HttpHeaders({ "Customer-Header": 'Hello'}),
+      //   params: searchParams
+      // }
+      )
       .pipe(
 
         map(responseData => {
@@ -38,19 +72,45 @@ export class PostsService {
           if (responseData.hasOwnProperty(key)) {
           postsArray.push({...responseData[key], id: key })
         }
+
       }
       return postsArray;
+      }),
+      catchError(errorRes => {
+        // Send to analytics  server
+        return throwError(errorRes);
+
       })
 
       )
-      // .subscribe(posts => {
-        // this.isFetching = false;
-        // this.loadedPosts = posts
-      // });
   }
 
+
+  // //////  // //////  // //////  // //////  // //////  // //////  // //////  // //////  // //////
+      // //////  // ////// DELETE ROUTES
+      // //////  // ////// DELETE ROUTES
+      // //////  // ////// DELETE ROUTES
+      // //////  // ////// DELETE ROUTES
+    // //////  // //////  // //////  // //////  // //////  // //////  // //////// //////// //////// //////
+
   deletePosts() {
-    return this.http.delete('https://angular-test-ejc.firebaseio.com/posts.json')
+    return this.http.delete('https://angular-test-ejc.firebaseio.com/posts.json',
+    {
+      observe: 'events',
+      responseType: 'text'
+        // also 'blob' for files, blob??
+    }
+    ).pipe(
+      tap(event => {
+        console.log(event)
+        if (event.type === HttpEventType.Response) {
+          console.log(event.body)
+        }
+        if (event.type === HttpEventType.Sent) {
+          // ..
+        }
+      })
+    )
   }
 
 }
